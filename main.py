@@ -5,21 +5,23 @@ import requests
 import time, socket
 import os, json
 import subprocess, re
+import shutil, stat, traceback
 
 from chariothy_common import AppTool
 
 APP_NAME = 'dnspod'
 APP = AppTool(APP_NAME, os.getcwd())
 CONFIG = APP.config
+LOGGER = APP.logger
 
 IP_ADDR = {
     6: ':::',
     4: '...'
 }
-IP_FILE = '/tmp/ipv{}'
+WDIR = '/usr/src/'
+IP_FILE = WDIR + 'myapp/ipv{}'
 UID = CONFIG['dnspod']['id']
 UTOKEN = CONFIG['dnspod']['token']
-DTOKEN = CONFIG['dingtalk']['token']
 URL = 'https://dnsapi.cn/'
 DOMAIN_RECORD = {}
 
@@ -40,26 +42,65 @@ def requestDnsApi(method, data={}):
     return res.json()
 
 
-def p(*values):
+def p(*values, force=False):
     """非debug时打印结果
     """
-    if CONFIG['debug']:
-        print('\n===>', values)
+    if CONFIG['debug'] or force:
+        print('\n【', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), '】 ', sep='', end='')
+        print(*values)
 
 
-def requestDingTalk(msg):
+def notifyByEmail(config, data):
+    prefix = 'error_' if 'error' in data else ''
+    subject = config[prefix + 'subject'].format(**data)
+    body = config[prefix + 'body'].format(**data)
+    p(subject, body)
+    if not CONFIG['dry']:
+        res = APP.send_email(subject, body)
+        p('邮件发送结果：', res)
+
+
+def notifyByDingTail(config, data):
     """发消息给钉钉机器人
     """
+    token = config['token']
+    if not token:
+        p('ERROR: 没有钉钉token')
+        return
+    prefix = 'error_' if 'error' in data else ''
     data = {
         "msgtype": "text",
         "text": {
-            "content": "DDNS" + msg
+            "content": config['keyword'] + config[prefix + 'message'].format(**data)
         },
-        "at": CONFIG['dingtalk']['at']
+        "at": config['at']
     }
-    res = requests.post(url="https://oapi.dingtalk.com/robot/send?access_token={}".format(DTOKEN), \
-        headers = {'Content-Type': 'application/json'}, data=json.dumps(data))
-    p(res.json())
+    p(data)
+    if not CONFIG['dry']:
+        res = requests.post(url="https://oapi.dingtalk.com/robot/send?access_token={}".format(token), \
+            headers = {'Content-Type': 'application/json'}, data=json.dumps(data))
+        p('钉钉推送结果：', res.json())
+
+
+def notifyByServerChan(config, data):
+    prefix = 'error_' if 'error' in data else ''
+    url = 'https://sc.ftqq.com/{sckey}.send'.format(**config)
+    title = config[prefix + 'title'].format(**data)
+    message = config[prefix + 'message'].format(**data)
+    p(title, message)
+    if not CONFIG['dry']:
+        res = requests.get(url, params={'text': title, 'desp': message})
+        p('Server酱推送结果：', res.json())
+
+
+def notify(data):
+    notifyConfig = CONFIG['notify']
+    if 'mail' in notifyConfig:
+        notifyByEmail(CONFIG['mail'], data)
+    elif 'dingtalk' in notifyConfig:
+        notifyByDingTail(CONFIG['dingtalk'], data)
+    elif 'ServerChan' in notifyConfig:
+        notifyByServerChan(CONFIG['ServerChan'], data)
 
 
 def parseIp(ipPair, version):
@@ -79,7 +120,7 @@ def parseIp(ipPair, version):
     elif version == 6:
         ipMatch = re.findall(r'inet6 ([0-9a-f:]+)/', ip)
     print(ipMatch)
-    tlftMatch = re.findall(r'valid_lft (\d+)sec preferred_lft (\d+)sec', tlft)
+    tlftMatch = re.findall(r'valid_lft (\d+\ssec|forever) preferred_lft (\d+\ssec|forever)', tlft)
     print(tlftMatch)
     return (ipMatch[0], tlftMatch[0][1])
 
@@ -92,6 +133,7 @@ def saveIP(ip, version):
         version (int): 4,6
     """
     ipFilePath = IP_FILE.format(version)
+    p(f'新IP地址已经保存到{ipFilePath}')
     with open(ipFilePath, mode='w') as fd:
         fd.write(ip)
 
@@ -134,7 +176,7 @@ def getIP(version):
     ipParts = [x.strip() for x in ipStr.split('\n')]
     p(ipParts)
     ipPairList = list(zip(ipParts[::2], ipParts[1::2]))
-    #p(dict(ipPairDict))
+    p(f'获取到本地IPv{version}', ipPairList)
 
     if len(ipPairList) == 1:
         ips = parseIp(ipPairList[0], version)
@@ -217,7 +259,6 @@ def refreshRecord(subDomainName, newIP, version):
                     'record_line': '默认'
                 }
                 action = 'Record.Modify'
-                actionReport = '更新'
             else:
                 data = {
                     'domain_id': domainId,
@@ -227,36 +268,54 @@ def refreshRecord(subDomainName, newIP, version):
                     'record_line': '默认'
                 }
                 action = 'Record.Create'
-                actionReport = '创建'
             p(data)
-            result = requestDnsApi(action, data)
-            p(result)
-            status = result['status']
-            if status['code'] != '1':
-                raise RuntimeError('{}-{}'.format(status['code'], status['message']))
-            else:
-                requestDingTalk('成功{}{}，IP为{}'.format(actionReport, subDomainName, newIP))
+            if not CONFIG['dry']:
+                result = requestDnsApi(action, data)
+                p(result)
+                status = result['status']
+                if status['code'] != '1':
+                    raise RuntimeError('{}-{}'.format(status['code'], status['message']))
 
 
 def run(version):
     assert(version == 4 or version == 6)
+    dnsType = 'AAAA' if version == 6 else 'A'
+    domains = CONFIG[f'ipv{version}']
+    domainStr = ','.join(domains)
     try:
+        p('*'*40 + f'IPv{version}' + '*'*40)
         global IP_ADDR
-        IP_ADDR[version] = getIP(version)
+        newIP = getIP(version)
+        p(f'解析IPv{version}结果为：{newIP}')
         oldIp = getOldIP(version)
-        p('本地IPv{}：{}'.format(version, IP_ADDR[version]))
-        if IP_ADDR[version] != oldIp:
-            p('已更新，上次IPv{}为{}'.format(version, oldIp))
-            saveIP(IP_ADDR[version], version)
-            for subDomain in CONFIG[f'ipv{version}']:
-                refreshRecord(subDomain, IP_ADDR[version], version)
+        if newIP != oldIp or CONFIG['force']:
+            IP_ADDR[version] = newIP
+            p('IPv{}已更新，上次地址为{}'.format(version, oldIp))
+            for subDomain in domains:
+                refreshRecord(subDomain, newIP, version)
+            notify({'version': version, 'dnsType': dnsType, 'ip': newIP, 'domains': domainStr})
+            if not CONFIG['dry']:
+                saveIP(newIP, version)
         else:
-            p('未更新')
-    except RuntimeError as ex:
+            p(f'IPv{version}未更新，程序结束')
+    except Exception as ex:
         p(ex)
-        requestDingTalk('更新失败：' + ex)
+        if CONFIG['debug']:
+            traceback.print_exc()
+        notify({'version': version, 'dnsType': dnsType, 'domains': domainStr, 'error': ex})
+
+
+def checkConfig():
+    localConfig = './config_local.py'
+    if not os.path.exists(localConfig):
+        p('未发现config_local.py文件，开始生成默认配置文件。')
+        shutil.copyfile('./config.py', localConfig)
+        os.chmod(localConfig, 0o777)
+        p('config_local.py文件已经生成，请根据实际情况修改，然后重新运行。')
+        os.sys.exit()
 
 
 if __name__ == "__main__":
+    checkConfig()
     run(6)
     run(4)
