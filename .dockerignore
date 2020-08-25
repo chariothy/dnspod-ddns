@@ -4,3 +4,5 @@ Dockerfile
 .gitignore
 config_local.py
 logs
+multi-arch-manifest.yaml
+*.dockerfile

@@ -1,7 +1,7 @@
 # For Tencent DDNS
 # @version 1.0
 
-FROM --platform=${TARGETPLATFORM} python:3.8-alpine
+FROM arm32v7/python:3.8-alpine
 LABEL maintainer="chariothy@gmail.com"
 
 ARG BUILD_DATE
