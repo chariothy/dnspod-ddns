@@ -9,6 +9,22 @@ import shutil, stat, traceback
 
 from chariothy_common import AppTool
 
+APP_NAME = 'dnspod'
+APP = AppTool(APP_NAME, os.getcwd())
+CONFIG = APP.config
+LOGGER = APP.logger
+IP_ADDR = {
+    6: ':::',
+    4: '...'
+}
+WDIR = '/usr/src/'
+IP_FILE = WDIR + 'myapp/ipv{}'
+UID = CONFIG['dnspod']['id']
+UTOKEN = CONFIG['dnspod']['token']
+URL = 'https://dnsapi.cn/'
+DOMAIN_RECORD = {}
+
+
 def p(*values, force=False):
     """非debug时打印结果
     """
@@ -29,22 +45,6 @@ def checkConfig():
         shutil.copyfile(localConfig, './config_local.py')
 
 checkConfig()
-
-APP_NAME = 'dnspod'
-APP = AppTool(APP_NAME, os.getcwd())
-CONFIG = APP.config
-LOGGER = APP.logger
-
-IP_ADDR = {
-    6: ':::',
-    4: '...'
-}
-WDIR = '/usr/src/'
-IP_FILE = WDIR + 'myapp/ipv{}'
-UID = CONFIG['dnspod']['id']
-UTOKEN = CONFIG['dnspod']['token']
-URL = 'https://dnsapi.cn/'
-DOMAIN_RECORD = {}
 
 
 def requestDnsApi(method, data={}):
