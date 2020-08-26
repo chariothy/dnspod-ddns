@@ -17,22 +17,19 @@ def checkConfig():
         os.chmod(localConfig, 0o777)
         print('config_local.py文件已经生成，请根据实际情况修改，然后重新运行。')
         os.sys.exit()
-    else:
-        shutil.copyfile(localConfig, './config_local.py')
 
 checkConfig()
 
 
 APP_NAME = 'dnspod'
-APP = AppTool(APP_NAME, os.getcwd())
+APP = AppTool(APP_NAME, os.getcwd(), 'config')
 CONFIG = APP.config
 LOGGER = APP.logger
 IP_ADDR = {
     6: ':::',
     4: '...'
 }
-WDIR = '/usr/src/'
-IP_FILE = WDIR + 'myapp/ipv{}'
+IP_FILE = './config/ipv{}'
 UID = CONFIG['dnspod']['id']
 UTOKEN = CONFIG['dnspod']['token']
 URL = 'https://dnsapi.cn/'
