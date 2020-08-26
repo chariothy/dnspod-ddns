@@ -110,9 +110,9 @@ def notify(data):
     notifyConfig = CONFIG['notify']
     if 'mail' in notifyConfig:
         notifyByEmail(CONFIG['mail'], data)
-    elif 'dingtalk' in notifyConfig:
+    if 'dingtalk' in notifyConfig:
         notifyByDingTail(CONFIG['dingtalk'], data)
-    elif 'ServerChan' in notifyConfig:
+    if 'ServerChan' in notifyConfig:
         notifyByServerChan(CONFIG['ServerChan'], data)
 
 
