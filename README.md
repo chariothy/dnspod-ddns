@@ -24,16 +24,33 @@
 <br>
 
 ## 1. Docker用法：
+cd ~ && mkdir dnspod && cd ~/dnspod
 docker run -it --rm --name ddns -v $PWD:/usr/src/app/config --network=host chariothy/dnspod-ddns
 
 ## 2. Python用法：(Python版本>=3.6)
+cd ~
+
 git clone git@github.com:chariothy/dnspod-ddns.git
 
 cd dnspod
 
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./requirements.txt
+pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./requirements.txt
 
-python main.py
+python3 main.py
+
+## 3. Docker定期运行（建议单次运行调试成功后再定期运行）：
+crontab -e
+
+新增一条任务：($USER替换成你的用户名，dnspod目录应该已经创建)
+
+*/5 * * * * docker run -it --rm -v /home/$USER/dnspod:/usr/src/app/config --network=host chariothy/dnspod-ddns
+
+## 4. Python定期运行（建议单次运行调试成功后再定期运行）
+crontab -e
+
+新增一条任务：($USER替换成你的用户名，dnspod目录应该已经创建)
+
+*/5 * * * * cd /home/$USER/dnspod && python3 main.py
 
 <br>
 
