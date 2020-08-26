@@ -23,12 +23,11 @@ LABEL maintainer="chariothy" \
   org.opencontainers.image.licenses="MIT"
 
 WORKDIR /usr/src/app
-COPY ./requirements.txt ./requirements.txt
+COPY ./requirements.txt ./
 
 # Install libs
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./requirements.txt
 
 COPY . .
 
-ENTRYPOINT [ "python" ]
-CMD [ "main.py" ]
+CMD [ "python", "main.py" ]

@@ -10,7 +10,7 @@
 ### config_local.py中有各个配置的详细说明，不用担心不会设置。
 
 ## 1. Docker用法：
-docker run -it --rm -v $PWD:/usr/src/app --network=host chariothy/dnspod
+docker run -it --rm --name ddns -v $PWD:/usr/src/app --network=host chariothy/dnspod-ddns
 
 ## 2. Python用法：(Python版本>=3.6)
 git clone git@github.com:chariothy/dnspod.git
