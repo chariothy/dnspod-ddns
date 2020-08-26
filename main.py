@@ -9,6 +9,19 @@ import shutil, stat, traceback
 
 from chariothy_common import AppTool
 
+def checkConfig():
+    localConfig = './config/config_local.py'
+    if not os.path.exists(localConfig):
+        p('未发现config_local.py文件，开始生成默认配置文件。')
+        shutil.copyfile('./config.py', localConfig)
+        os.chmod(localConfig, 0o777)
+        p('config_local.py文件已经生成，请根据实际情况修改，然后重新运行。')
+        os.sys.exit()
+    else:
+        shutil.copyfile(localConfig, './config_local.py')
+
+checkConfig()
+
 APP_NAME = 'dnspod'
 APP = AppTool(APP_NAME, os.getcwd())
 CONFIG = APP.config
@@ -303,16 +316,6 @@ def run(version):
         if CONFIG['debug']:
             traceback.print_exc()
         notify({'version': version, 'dnsType': dnsType, 'domains': domainStr, 'error': ex})
-
-
-def checkConfig():
-    localConfig = './config_local.py'
-    if not os.path.exists(localConfig):
-        p('未发现config_local.py文件，开始生成默认配置文件。')
-        shutil.copyfile('./config.py', localConfig)
-        os.chmod(localConfig, 0o777)
-        p('config_local.py文件已经生成，请根据实际情况修改，然后重新运行。')
-        os.sys.exit()
 
 
 if __name__ == "__main__":
