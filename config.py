@@ -12,11 +12,11 @@ CONFIG = {
         'ServerChan',                   # 通过微信公众号Server酱(http://sc.ftqq.com/)通知，需要配置'ServerChan'
         'dingtalk'                      # 通过钉钉机器人(http://dwz.win/MqK)通知，需要配置'dingtalk'
     ],
-    'ipv4': ['ipv4.domain'],            # IPv4地址对应的域名，
+    'ipv4': ['ipv4.domain.com'],        # IPv4地址对应的域名，为空则不更新ipv4地址
                                         #       如：a.domain.com
                                         #       可以使用泛域名如：*.sub.domain.com
                                         #       可以直接写根域名：domain.com (对应A名称为@)
-    'ipv6': ['ipv6.domain'],            # IPv6地址对应的域名, 详情同IPv4
+    'ipv6': ['ipv6.domain.com'],        # IPv6地址对应的域名, 详情同IPv4
     'mail': {
         'from': ('Hongyu TIAN', 'chariothy@gmail.com'),     # 发件人信息，（名称，地址）
         'to': (('Hongyu TIAN', 'chariothy@gmail.com'),),    # 收件人信息列表，（（名称，地址），）
@@ -33,9 +33,10 @@ CONFIG = {
     },
     'smtp': {                          # 邮箱SMTP信息，可从邮箱服务商处获取
         'host': 'smtp.gmail.com',
-        'port': 25,
+        'port': 25,                    # 此处需要与ssl对应
         'user': 'chariothy@gmail.com',
-        'pwd': '123456'
+        'pwd': '123456',
+        'ssl': False                    # 此处需要与port对应
     },
     'ServerChan': {                                               # 请遵守Server酱的调用频率限制，否则可能被禁用
         'sckey': 'SCU38711T818290d9c930e171e83e02b96afbc3365c2ebe41b8cd9',  # Server酱的SCKEY

@@ -299,6 +299,7 @@ def run(version):
     domains = CONFIG[f'ipv{version}']
     if not domains:
         p(f'未配置IPv{version}，不需要更新。')
+        return
     domainStr = ','.join(domains)
     try:
         p('*'*40 + f'IPv{version}' + '*'*40)
