@@ -9,6 +9,20 @@ import shutil, stat, traceback
 
 from chariothy_common import AppTool
 
+def checkConfig():
+    localConfig = './config/config_local.py'
+    if not os.path.exists(localConfig):
+        print('未发现config_local.py文件，开始生成默认配置文件。')
+        shutil.copyfile('./config.py', localConfig)
+        os.chmod(localConfig, 0o777)
+        print('config_local.py文件已经生成，请根据实际情况修改，然后重新运行。')
+        os.sys.exit()
+    else:
+        shutil.copyfile(localConfig, './config_local.py')
+
+checkConfig()
+
+
 APP_NAME = 'dnspod'
 APP = AppTool(APP_NAME, os.getcwd())
 CONFIG = APP.config
@@ -33,20 +47,6 @@ def p(*values, force=False):
         print(*values)
 
 
-def checkConfig():
-    localConfig = './config/config_local.py'
-    if not os.path.exists(localConfig):
-        p('未发现config_local.py文件，开始生成默认配置文件。')
-        shutil.copyfile('./config.py', localConfig)
-        os.chmod(localConfig, 0o777)
-        p('config_local.py文件已经生成，请根据实际情况修改，然后重新运行。')
-        os.sys.exit()
-    else:
-        shutil.copyfile(localConfig, './config_local.py')
-
-checkConfig()
-
-
 def requestDnsApi(method, data={}):
     """调用dnspod的API
 
@@ -59,7 +59,10 @@ def requestDnsApi(method, data={}):
         'format': 'json'
     }
     res = requests.post(url=URL + method, data=dict(auth, **data))
-    p(res.json())
+    result = res.json()
+    p(result)
+    if result['status']['code'] != '1':
+        raise RuntimeError('Dnspod API调用失败')
     return res.json()
 
 
