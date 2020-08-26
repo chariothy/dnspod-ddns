@@ -133,7 +133,7 @@ def parseIp(ipPair, version):
     elif version == 6:
         ipMatch = re.findall(r'inet6 ([0-9a-f:]+)/', ip)
     print(ipMatch)
-    tlftMatch = re.findall(r'valid_lft (\d+\ssec|forever) preferred_lft (\d+\ssec|forever)', tlft)
+    tlftMatch = re.findall(r'valid_lft (\d+sec|forever) preferred_lft (\d+sec|forever)', tlft)
     print(tlftMatch)
     return (ipMatch[0], tlftMatch[0][1])
 
@@ -203,7 +203,7 @@ def getIP(version):
         p(ipList)
         return ipList[0][0]
     else:
-        raise RuntimeError(f'没法找到IPv{version}地址')
+        raise RuntimeError(f'无法找到IPv{version}地址')
 
 
 def getDomains():
