@@ -297,6 +297,8 @@ def run(version):
     assert(version == 4 or version == 6)
     dnsType = 'AAAA' if version == 6 else 'A'
     domains = CONFIG[f'ipv{version}']
+    if not domains:
+        p(f'未配置IPv{version}，不需要更新。')
     domainStr = ','.join(domains)
     try:
         p('*'*40 + f'IPv{version}' + '*'*40)
