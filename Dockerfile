@@ -26,7 +26,9 @@ WORKDIR /usr/src/app
 COPY ./requirements.txt ./
 
 # Install libs
-RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./requirements.txt
+RUN pip install --no-cache-dir -r ./requirements.txt
+# 本地编译时需要加国内代理
+#RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./requirements.txt
 
 COPY . .
 
