@@ -38,3 +38,8 @@ jobs:
         docker buildx build --push \
             --tag chariothy/dnspod-ddns:latest \
             --platform linux/386,linux/amd64,linux/arm64,linux/arm/v7 .
+
+    - name: Inspect image
+      if: always() && github.event_name != 'pull_request'
+      run: |
+        docker buildx imagetools inspect chariothy/dnspod-ddns:latest
