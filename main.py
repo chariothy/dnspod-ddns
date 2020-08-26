@@ -9,6 +9,14 @@ import shutil, stat, traceback
 
 from chariothy_common import AppTool
 
+def p(*values, force=False):
+    """非debug时打印结果
+    """
+    if CONFIG['debug'] or force:
+        print('\n【', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), '】 ', sep='', end='')
+        print(*values)
+
+
 def checkConfig():
     localConfig = './config/config_local.py'
     if not os.path.exists(localConfig):
@@ -53,14 +61,6 @@ def requestDnsApi(method, data={}):
     res = requests.post(url=URL + method, data=dict(auth, **data))
     p(res.json())
     return res.json()
-
-
-def p(*values, force=False):
-    """非debug时打印结果
-    """
-    if CONFIG['debug'] or force:
-        print('\n【', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), '】 ', sep='', end='')
-        print(*values)
 
 
 def notifyByEmail(config, data):
