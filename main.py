@@ -163,7 +163,7 @@ def getOldIP(version):
     ipFilePath = IP_FILE.format(version)
     if os.path.exists(ipFilePath):
         with open(ipFilePath, mode='r') as fd:
-            ip = fd.readline(1)
+            ip = fd.readline()
             return ip
     else:
         return ''
