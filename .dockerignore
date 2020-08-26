@@ -7,3 +7,4 @@ logs
 multi-arch-manifest.yaml
 *.dockerfile
 hooks
+.github
