@@ -25,11 +25,13 @@
 <br>
 
 ## 1. Docker用法：
+```
 cd ~ && mkdir dnspod && cd ~/dnspod
 
 docker run -it --rm --name ddns -v $PWD/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
-
+```
 ## 2. Python用法：(Python版本>=3.6)
+```
 cd ~
 
 git clone git@github.com:chariothy/dnspod-ddns.git
@@ -39,7 +41,7 @@ cd dnspod
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./requirements.txt
 
 python3 main.py
-
+```
 ## 3. Docker定期运行（建议单次运行调试成功后再定期运行）：
 crontab -e
 
@@ -60,6 +62,6 @@ crontab -e
 ## 配置文件中默认dry为True，需要将其修改为False才会实际生效。
 
 # TODO:
-## 将自身做为服务器，代理其它结点的DDNS，这样只需要部署一处，就可以让所有设备DDNS
-## 加入权重配置
-## 加入docker-compose用法说明
+1. 将自身做为服务器，代理其它结点的DDNS，这样只需要部署一处，就可以让所有设备DDNS
+1. 加入权重配置
+1. 加入docker-compose用法说明
