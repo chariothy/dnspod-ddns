@@ -27,7 +27,7 @@
 ## 1. Docker用法：
 cd ~ && mkdir dnspod && cd ~/dnspod
 
-docker run -it --rm --name ddns -v $PWD:/usr/src/app/config --network=host chariothy/dnspod-ddns
+docker run -it --rm --name ddns -v $PWD/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
 
 ## 2. Python用法：(Python版本>=3.6)
 cd ~
@@ -45,7 +45,7 @@ crontab -e
 
 新增一条任务：($USER替换成你的用户名，dnspod目录应该已经创建)
 
-*/5 * * * * docker run -it --rm -v /home/$USER/dnspod:/usr/src/app/config --network=host chariothy/dnspod-ddns
+*/5 * * * * docker run -it --rm -v /home/$USER/dnspod/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
 
 ## 4. Python定期运行（建议单次运行调试成功后再定期运行）
 crontab -e
@@ -61,3 +61,5 @@ crontab -e
 
 # TODO:
 ## 将自身做为服务器，代理其它结点的DDNS，这样只需要部署一处，就可以让所有设备DDNS
+## 加入权重配置
+## 加入docker-compose用法说明
