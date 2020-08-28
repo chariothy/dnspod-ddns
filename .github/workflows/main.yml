@@ -6,7 +6,7 @@ name: CI
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [ refs/tags/* ]
   pull_request:
     branches: [ master ]
 
@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Set output
       id: vars
-      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/tags/*/}
 
     # Runs a single command using the runners shell
     - name: Install buildx
