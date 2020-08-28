@@ -21,6 +21,9 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+    - name: Set output
+      id: vars
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
 
     # Runs a single command using the runners shell
     - name: Install buildx
@@ -37,6 +40,7 @@ jobs:
       run: |
         docker buildx build --push \
             --tag chariothy/dnspod-ddns:latest \
+            --tag chariothy/dnspod-ddns:${{ steps.vars.outputs.tag }} \
             --platform linux/386,linux/amd64,linux/arm64,linux/arm/v7 .
 
     - name: Inspect image

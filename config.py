@@ -1,4 +1,5 @@
 CONFIG = {
+    'version': '1.1',                   # 配置文件版本
     "debug": True,                      # 是否输出更多信息
     'dry': False,                       # 是否dry run，只检测不更新，防止测试时频繁更新和推送，也不会保存旧IP
     'force': False,                     # 是否强制更新，不管与上次的检测结果是否相同都更新
@@ -12,6 +13,12 @@ CONFIG = {
         'ServerChan',                   # 通过微信公众号Server酱(http://sc.ftqq.com/)通知，需要配置'ServerChan'
         'dingtalk'                      # 通过钉钉机器人(http://dwz.win/MqK)通知，需要配置'dingtalk'
     ],
+    'get_ipv4': ['api'],                # 获取ipv4的方式，支持：
+                                        #   'regex':  正则解析ip addr从网卡获取的ip的方式，速度最快
+                                        #   'api': 通过公共api获取ip，目前支持dyndns.com, myip.com, ip.sb, ipify.org。准确性最高
+                                        # 同时配置regex和url的话会将两者结果进行对比，如果两者结果不同，则使用url的结果，并发送报告
+                                        # !!! 建议：如果从网卡可以获取公网IP，建议使用regex方式，快且稳定。公共api慢而不稳定。后面我会考虑自建一个api。
+    'get_ipv6': ['regex'],              # 获取ipv6的方式，详情同get_ipv4
     'ipv4': ['ipv4.domain.com'],        # IPv4地址对应的域名，为空则不更新ipv4地址
                                         #       如：a.domain.com
                                         #       可以使用泛域名如：*.sub.domain.com
@@ -20,7 +27,7 @@ CONFIG = {
     'mail': {
         'from': ('Hongyu TIAN', 'chariothy@gmail.com'),     # 发件人信息，（名称，地址）
         'to': (('Hongyu TIAN', 'chariothy@gmail.com'),),    # 收件人信息列表，（（名称，地址），）
-        'subject': 'IPv{version}地址已经改变',               # 邮件标题，可用变量：version(4,6)
+        'subject': 'IPv{version}地址发生改变',               # 邮件标题，可用变量：version(4,6)
         'body': '域名{domains}的{dnsType}纪录已经更新为{ip}', # 邮件正文，可用变量：
                                                             #       domains(所有相应域名，逗号分隔)
                                                             #       dnsType(A,AAAA)
@@ -40,7 +47,7 @@ CONFIG = {
     },
     'ServerChan': {                                               # 请遵守Server酱的调用频率限制，否则可能被禁用
         'sckey': 'SCU38711T818290d9c930e171e83e02b96afbc3365c2ebe41b8cd9',  # Server酱的SCKEY
-        'title': 'IPv{version}地址已经改变',                       # 消息标题，可用变量：version(4,6)
+        'title': 'IPv{version}地址发生改变',                       # 消息标题，可用变量：version(4,6)
         'message': '域名{domains}的{dnsType}纪录已经更新为{ip}',    # 消息正文，可用变量：
                                                                   #       domains(所有相应域名，逗号分隔)
                                                                   #       dnsType(A,AAAA)

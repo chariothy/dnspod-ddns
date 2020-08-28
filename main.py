@@ -7,6 +7,7 @@ import os, json
 import subprocess, re
 import shutil, stat, traceback
 
+from ip import Ip
 from chariothy_common import AppTool
 
 def checkConfig():
@@ -57,7 +58,7 @@ def requestDnsApi(method, data={}):
     }
     res = requests.post(url=URL + method, data=dict(auth, **data))
     result = res.json()
-    p(result)
+    #p(result)
     if result['status']['code'] != '1':
         raise RuntimeError('Dnspod API调用失败')
     return res.json()
@@ -67,7 +68,7 @@ def notifyByEmail(config, data):
     prefix = 'error_' if 'error' in data else ''
     subject = config[prefix + 'subject'].format(**data)
     body = config[prefix + 'body'].format(**data)
-    p(subject, body)
+    p('邮件===>', subject, body)
     if not CONFIG['dry']:
         res = APP.send_email(subject, body)
         p('邮件发送结果：', res)
@@ -88,7 +89,7 @@ def notifyByDingTail(config, data):
         },
         "at": config['at']
     }
-    p(data)
+    p('钉钉机器人===>', data)
     if not CONFIG['dry']:
         res = requests.post(url="https://oapi.dingtalk.com/robot/send?access_token={}".format(token), \
             headers = {'Content-Type': 'application/json'}, data=json.dumps(data))
@@ -100,7 +101,7 @@ def notifyByServerChan(config, data):
     url = 'https://sc.ftqq.com/{sckey}.send'.format(**config)
     title = config[prefix + 'title'].format(**data)
     message = config[prefix + 'message'].format(**data)
-    p(title, message)
+    p('Server酱===>', title, message)
     if not CONFIG['dry']:
         res = requests.get(url, params={'text': title, 'desp': message})
         p('Server酱推送结果：', res.json())
@@ -132,9 +133,9 @@ def parseIp(ipPair, version):
         ipMatch = re.findall(r'inet ([0-9\.]+)/', ip)
     elif version == 6:
         ipMatch = re.findall(r'inet6 ([0-9a-f:]+)/', ip)
-    print(ipMatch)
+    p(ipMatch)
     tlftMatch = re.findall(r'valid_lft (\d+sec|forever) preferred_lft (\d+sec|forever)', tlft)
-    print(tlftMatch)
+    p(tlftMatch)
     return (ipMatch[0], tlftMatch[0][1])
 
 
@@ -169,7 +170,7 @@ def getOldIP(version):
         return ''
 
 
-def getIP(version):
+def getIpByRegex(version):
     """获取本机IP地址
     """
     if version == 4:
@@ -204,6 +205,48 @@ def getIP(version):
         return ipList[0][0]
     else:
         raise RuntimeError(f'无法找到IPv{version}地址')
+
+
+def getIpByApi(version):
+    apiUrls = [
+        'ip.sb',
+        'myip.com',
+        'dyndns.com'
+    ]
+    for apiUrl in apiUrls:
+        iper = Ip.create(apiUrl, version)
+        ip = iper.getIp()
+        p(ip)
+        if ip['ip']:
+            return ip
+    return {'ip': None, 'url': None}
+    
+
+def getIp(version):
+    methodConfig = CONFIG[f'get_ipv{version}']
+    ipRegex = None
+    ipApi = None
+    
+    if 'regex' in methodConfig:
+        ipRegex = getIpByRegex(version)
+
+    if 'api' in methodConfig:
+        ipData = getIpByApi(version)
+        ipApi = ipData['ip']
+        ipUrl = ipData['url']
+
+    ip = None
+    if ipRegex and ipApi:
+        ip = ipApi
+        if ipRegex != ipApi:
+            APP.send_email(f'IPv{version}不一致', f'从网卡获取的IP为{ipRegex}，从{ipUrl}获取的IP为{ipApi}')        
+    elif not ipRegex and not ipApi:
+        raise RuntimeError(f'未获取到IPv{version}地址')
+    elif ipApi:
+        ip = ipApi
+    elif ipRegex:
+        ip = ipRegex
+    return ip
 
 
 def getDomains():
@@ -261,7 +304,7 @@ def refreshRecord(subDomainName, newIP, version):
             if key in domain['records']:
                 record = domain['records'][key]
                 if record['value'] == newIP:
-                    p(f'IPv{version}地址与线上一致：{newIP}')
+                    p(f'{subDomainName}的IPv{version}地址与线上一致：{newIP}')
                     continue
                 data = {
                     'domain_id': domainId,
@@ -301,24 +344,28 @@ def run(version):
     try:
         p('*'*40 + f'IPv{version}' + '*'*40)
         global IP_ADDR
-        newIP = getIP(version)
-        p(f'解析IPv{version}结果为：{newIP}')
+        newIP = getIp(version)
+        p(f'解析IPv{version}结果为：{newIP}', force=True)
         oldIp = getOldIP(version)
         if newIP != oldIp or CONFIG['force']:
             IP_ADDR[version] = newIP
-            p('IPv{}已更新，上次地址为{}'.format(version, oldIp))
+            p('IPv{}已发生改变，上次地址为{}'.format(version, oldIp), force=True)
             for subDomain in domains:
                 refreshRecord(subDomain, newIP, version)
+            p(f'域名{domains}的{dnsType}纪录已经更新为{newIP}', force=True)
             notify({'version': version, 'dnsType': dnsType, 'ip': newIP, 'domains': domainStr})
             if not CONFIG['dry']:
                 saveIP(newIP, version)
         else:
-            p(f'IPv{version}未更新，程序结束')
+            p(f'IPv{version}未发生改变，程序结束')
     except Exception as ex:
-        p(ex)
+        p('!!!运行失败，原因：', ex, force=True)
         if CONFIG['debug']:
             traceback.print_exc()
         notify({'version': version, 'dnsType': dnsType, 'domains': domainStr, 'error': ex})
+    
+    if CONFIG['dry']:
+        print('\n\n' + '!'*20 + f'-这是在dry模式下运行，实际IPv{version}域名未作更新-' + '!'*20)
 
 
 if __name__ == "__main__":

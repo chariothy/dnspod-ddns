@@ -7,7 +7,7 @@
 <br>
 
 ## 1. 获取IP的方式：
-### 目前仅支持脚本方式，后期会加入访问公用api的方式
+### 目前支持脚本方式和访问公用api的方式
 
 <br>
 
@@ -25,6 +25,7 @@
 
 ## 1. Docker用法：
 cd ~ && mkdir dnspod && cd ~/dnspod
+
 docker run -it --rm --name ddns -v $PWD:/usr/src/app/config --network=host chariothy/dnspod-ddns
 
 ## 2. Python用法：(Python版本>=3.6)
@@ -56,3 +57,6 @@ crontab -e
 
 # 注意：
 ## 配置文件中默认dry为True，需要将其修改为False才会实际生效。
+
+# TODO:
+## 将自身做为服务器，代理其它结点的DDNS，这样只需要部署一处，就可以让所有设备DDNS
