@@ -18,8 +18,9 @@
 
 # 说明：
 ### 首次运行时，程序会检测当前目录下是否有**config_local.py**这个文件，这个文件中的值会覆盖默认的**config.py**中的值。
-### 如果没有此文件，则会创建一个**config_local.py**示例文件，只要在这个新建的文件中修改相应的值就可以了。
-### config_local.py中有各个配置的详细说明，不用担心不会设置。详见：[config.py](config.py)
+### 如果没有此文件，则会创建一个**config_sample.py**示例文件，只要在这个新建的文件中修改相应的值并另存为confg_local.py就可以了。
+### **config_sample.py**会被新版本覆盖，因此请不要在其中保存数据，而是另存为**confg_local.py**。
+### **config_sample.py**中有各个配置的详细说明，不用担心不会设置。详见：[config.py](config.py)
 
 <br>
 

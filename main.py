@@ -10,13 +10,49 @@ import shutil, stat, traceback
 from ip import Ip
 from chariothy_common import AppTool
 
+
+def show_diff(src_path, dst_path):
+    import difflib
+    with open(src_path, mode='r') as fd:
+        src_text = fd.readlines()
+    
+    with open(dst_path, mode='r') as fd:
+        dst_text = fd.readlines()
+
+    diff_list = list(difflib.Differ().compare(src_text, dst_text))
+    for diff in diff_list:
+        if diff == "\n":
+            print ("\n")
+        print(diff, end='', sep='')
+    print()
+
+
 def checkConfig():
     localConfig = './config/config_local.py'
+    sampleConfig = localConfig.replace('_local', '_sample')        
+    from config import CONFIG
+
+    sys.path.append(os.path.join(os.getcwd(), 'config'))
+    if not os.path.exists(sampleConfig):
+        configVersion = ''
+    else:
+        from config_sample import CONFIG as CONFIG_SAMPLE
+        configVersion = CONFIG_SAMPLE.get('version', 'NONE')
+    
+    if CONFIG['version'] != configVersion:
+        if configVersion:
+            print('#'* 20 + ' ↓ config_sample.py有版本更新，请注意其中的配置项差异 ({} <-> {}) ↓ '.format(configVersion, CONFIG['version']) + '#' * 20)
+            show_diff(sampleConfig, './config.py')
+            shutil.move(sampleConfig, sampleConfig.replace('_sample', f'_sample.v{configVersion}'))
+            print('#'* 20 + ' ↑ config_sample.py有版本更新，请注意其中的配置项差异 ({} <-> {}) ↑ '.format(configVersion, CONFIG['version']) + '#' * 20)
+        shutil.copyfile('./config.py', sampleConfig)
+        os.chmod(sampleConfig, 0o777)
+
     if not os.path.exists(localConfig):
-        print('未发现config_local.py文件，开始生成默认配置文件。')
+        print('\n未发现config_local.py文件，开始生成默认配置文件 ......')
         shutil.copyfile('./config.py', localConfig)
         os.chmod(localConfig, 0o777)
-        print('config_local.py文件已经生成，请根据实际情况修改，然后重新运行。')
+        print('\n默认config_local.py文件已经生成，请根据实际情况修改配置，并重新运行。')
         os.sys.exit()
 
 checkConfig()
@@ -68,7 +104,7 @@ def notifyByEmail(config, data):
     prefix = 'error_' if 'error' in data else ''
     subject = config[prefix + 'subject'].format(**data)
     body = config[prefix + 'body'].format(**data)
-    p('邮件===>', subject, body)
+    p('邮件===>', subject, '; ', body)
     if not CONFIG['dry']:
         res = APP.send_email(subject, body)
         if res:
@@ -104,7 +140,7 @@ def notifyByServerChan(config, data):
     url = 'https://sc.ftqq.com/{sckey}.send'.format(**config)
     title = config[prefix + 'title'].format(**data)
     message = config[prefix + 'message'].format(**data)
-    p('Server酱===>', title, message)
+    p('Server酱===>', title, '; ', message)
     if not CONFIG['dry']:
         res = requests.get(url, params={'text': title, 'desp': message})
         p('Server酱推送结果：', res.json())
@@ -372,6 +408,5 @@ def run(version):
 
 
 if __name__ == "__main__":
-    checkConfig()
     run(6)
     run(4)
