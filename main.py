@@ -71,7 +71,10 @@ def notifyByEmail(config, data):
     p('邮件===>', subject, body)
     if not CONFIG['dry']:
         res = APP.send_email(subject, body)
-        p('邮件发送结果：', res)
+        if res:
+            p('邮件推送失败：', res, force=True)
+        else:
+            p('邮件发送成功。')
 
 
 def notifyByDingTail(config, data):
