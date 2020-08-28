@@ -12,7 +12,7 @@
 <br>
 
 ## 2. IP更新后的通知方式：
-### 目前支持邮件、钉钉机器人、Server酱
+### 目前支持邮件、[钉钉机器人](http://dwz.win/MqK)、[Server酱](http://sc.ftqq.com/)
 
 <br>
 

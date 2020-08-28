@@ -38,12 +38,12 @@ CONFIG = {
                                                             #       dnsType(A,AAAA)
                                                             #       error(错误信息)                                                 
     },
-    'smtp': {                          # 邮箱SMTP信息，可从邮箱服务商处获取
+    'smtp': {                           # 邮箱SMTP信息，可从邮箱服务商处获取
         'host': 'smtp.gmail.com',
-        'port': 25,                    # 此处需要与ssl对应
+        'port': 587,                    # 此处需要与type对应
         'user': 'chariothy@gmail.com',
-        'pwd': '123456',
-        'ssl': False                    # 此处需要与port对应
+        'pwd': '123456',                # 可能需要邮件应用专用密码，请参考邮箱服务商
+        'type': 'tls'                   # 此处需要与port对应，支持 plain (默认) / ssl / tls
     },
     'ServerChan': {                                               # 请遵守Server酱的调用频率限制，否则可能被禁用
         'sckey': 'SCU38711T818290d9c930e171e83e02b96afbc3365c2ebe41b8cd9',  # Server酱的SCKEY
