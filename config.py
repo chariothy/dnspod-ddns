@@ -4,7 +4,7 @@ CONFIG = {
     'dry': False,                       # 是否dry run，只检测不更新，防止测试时频繁更新和推送，也不会保存旧IP
     'force': False,                     # 是否强制更新，不管与上次的检测结果是否相同都更新
     'interface': 'eth0',                # 要检测IP地址的网卡名称，可以用"ip addr"来查看
-    'interval': 5,                      # 后台运行时的间隔时间，单位为秒，建议：使用api方式获取IP的间隔设置为300，使用regex获取IP的设置为5
+    'interval': 60,                     # 后台运行时的间隔时间，单位为秒，建议：使用api方式获取IP的间隔设置为300，使用regex获取IP的设置为60
     'dnspod': {
         'id': 1234567,                  # dnspod的ID
         'token': 'your_dnspod_token'    # dnspod的token
