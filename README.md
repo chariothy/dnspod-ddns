@@ -80,6 +80,6 @@ cd /home/$USER/dnspod && python3 main.py -d
 ## 配置文件中默认dry为True，需要将其修改为False才会实际生效。
 
 # TODO:
-1. 将自身做为服务器，代理其它结点的DDNS，这样只需要部署一处，就可以让所有设备DDNS
-1. 加入权重配置
+1. 将自身做为服务器，代理其它结点的DDNS，这样只需要部署一处，就可以让所有设备DDNS，只要支持curl
+1. 加入域名权重配置
 1. 加入docker-compose用法说明
