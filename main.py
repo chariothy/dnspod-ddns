@@ -407,6 +407,14 @@ def run(version):
         print('\n\n' + '!'*20 + f'-这是在dry模式下运行，实际IPv{version}域名未作更新-' + '!'*20)
 
 
+def start():
+    while True:
+        run(6)
+        run(4)
+        if '-d' in sys.argv:
+            time.sleep(CONFIG['interval'])
+        else:
+            break
+
 if __name__ == "__main__":
-    run(6)
-    run(4)
+    start()

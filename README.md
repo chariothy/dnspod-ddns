@@ -43,19 +43,37 @@ pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./req
 python3 main.py
 ```
 ## 3. Docker定期运行（建议单次运行调试成功后再定期运行）：
+### 3.1 crontab方式
 crontab -e
 
 新增一条任务：($USER替换成你的用户名，dnspod目录应该已经创建)
+```
 
 */5 * * * * docker run -it --rm -v /home/$USER/dnspod/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
+```
+### 3.2 daemon方式
+```
+docker run -it \
+--restart unless-stopped \
+--name ddns \
+-v $PWD/config:/usr/src/app/config \
+--network=host \
+chariothy/dnspod-ddns \
+python main.py -d
+```
 
 ## 4. Python定期运行（建议单次运行调试成功后再定期运行）
+### 4.1 crontab方式
 crontab -e
 
 新增一条任务：($USER替换成你的用户名，dnspod目录应该已经创建)
 
 */5 * * * * cd /home/$USER/dnspod && python3 main.py
 
+### 4.2 daemon方式
+```
+cd /home/$USER/dnspod && python3 main.py -d
+```
 <br>
 
 # 注意：
