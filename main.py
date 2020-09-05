@@ -164,18 +164,28 @@ def parseIp(ipPair, version):
         version (int): 4,6
 
     Returns:
-        tuple: (ip, preferred_lft)
+        tuple: (ip, score)
     """
-    ip = ipPair[0]
-    tlft = ipPair[1]
+    ipLine, tlft = ipPair
     if version == 4:
-        ipMatch = re.findall(r'inet ([0-9\.]+)/', ip)
+        ipMatch = re.findall(r'inet ([0-9\.]+)/(\d+)\s', ipLine)
     elif version == 6:
-        ipMatch = re.findall(r'inet6 ([0-9a-f:]+)/', ip)
+        ipMatch = re.findall(r'inet6 ([0-9a-f:]+)/(\d+)\s', ipLine)
     p(ipMatch)
+    ip, prefix = ipMatch[0]
+    prefix = int(prefix)
     tlftMatch = re.findall(r'valid_lft (\d+sec|forever) preferred_lft (\d+sec|forever)', tlft)
     p(tlftMatch)
-    return (ipMatch[0], tlftMatch[0][1])
+    valid, prefer = tlftMatch[0]
+
+    if prefer == 'forever':
+        score = sys.maxsize
+    else:
+        score = int(prefer[:-3])    # Remove 'sec'
+        score *= prefix
+        if 'mngtmpaddr' in ipLine:
+            score = prefer * 0.8
+    return (ip, score)
 
 
 def saveIP(ip, version):
