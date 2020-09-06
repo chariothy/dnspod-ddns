@@ -36,7 +36,7 @@ cd ~
 
 git clone git@github.com:chariothy/dnspod-ddns.git
 
-cd dnspod
+cd dnspod-ddns
 
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./requirements.txt
 
