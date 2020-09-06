@@ -181,8 +181,9 @@ def parseIp(ipPair, version):
     if prefer == 'forever':
         score = sys.maxsize
     else:
-        score = int(prefer[:-3])    # Remove 'sec'
-        score *= prefix
+        prefer = int(prefer[:-3])       # Remove 'sec'
+        valid = int(valid[:-3])         # Remove 'sec'
+        score = (prefer + valid) * prefix
         if 'mngtmpaddr' in ipLine:
             score = prefer * 0.8
     return (ip, score)

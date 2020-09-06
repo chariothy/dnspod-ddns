@@ -51,7 +51,7 @@ crontab -e
 
 */5 * * * * docker run -it --rm -v /home/$USER/dnspod/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
 ```
-### 3.2 daemon方式 （间隔时间可在配置中调整）
+### 3.2 daemon方式 （建议单次运行调试成功后再定期运行,间隔时间可在配置中调整）
 ```
 docker run -itd \
 --restart unless-stopped \
@@ -70,7 +70,7 @@ crontab -e
 
 */5 * * * * cd /home/$USER/dnspod && python3 main.py
 
-### 4.2 daemon方式（间隔时间可在配置中调整）
+### 4.2 daemon方式（建议单次运行调试成功后再定期运行,间隔时间可在配置中调整）
 ```
 cd /home/$USER/dnspod && python3 main.py -d
 ```
