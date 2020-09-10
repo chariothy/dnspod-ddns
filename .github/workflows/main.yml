@@ -40,11 +40,11 @@ jobs:
     - name: Build the image
       run: |
         docker buildx build --push \
-            --tag chariothy/dnspod-ddns:latest \
-            --tag chariothy/dnspod-ddns:${{ steps.vars.outputs.tag }} \
+            --tag ${{ secrets.DOCKER_USER }}/dnspod-ddns:latest \
+            --tag ${{ secrets.DOCKER_USER }}/dnspod-ddns:${{ steps.vars.outputs.tag }} \
             --platform linux/386,linux/amd64,linux/arm64,linux/arm/v7 .
 
     - name: Inspect image
       if: always() && github.event_name != 'pull_request'
       run: |
-        docker buildx imagetools inspect chariothy/dnspod-ddns:latest
+        docker buildx imagetools inspect ${{ secrets.DOCKER_USER }}/dnspod-ddns:latest

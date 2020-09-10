@@ -20,7 +20,7 @@
 ### 首次运行时，程序会检测当前目录下是否有**config_local.py**这个文件，这个文件中的值会覆盖默认的**config.py**中的值。
 ### 如果没有此文件，则会创建一个**config_sample.py**示例文件，只要在这个新建的文件中修改相应的值并另存为confg_local.py就可以了。
 ### **config_sample.py**会被新版本覆盖，因此请不要在其中保存数据，而是另存为**confg_local.py**。
-### **config_sample.py**中有各个配置的详细说明，不用担心不会设置。详见：[config.py](config.py)
+### **config_sample.py**中有各个配置的详细说明，不用担心不会设置。详见：[config.py](https://github.com/chariothy/dnspod-ddns/blob/master/config.py)
 
 <br>
 
@@ -28,9 +28,12 @@
 ```
 cd ~ && mkdir dnspod && cd ~/dnspod
 
+docker pull chariothy/dnspod-ddns （如果需要更新）
+
 docker run -it --rm --name ddns -v $PWD/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
 ```
 ## 2. Python用法：(Python版本>=3.6)
+**在Windows下运行时，请将 get_ipv4 和 get_ipv6 均配置为 api 方式**
 ```
 cd ~
 
@@ -38,7 +41,7 @@ git clone git@github.com:chariothy/dnspod-ddns.git
 
 cd dnspod-ddns
 
-pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r ./requirements.txt
+pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade -r ./requirements.txt
 
 python3 main.py
 ```
@@ -52,6 +55,7 @@ crontab -e
 */5 * * * * docker run -it --rm -v /home/$USER/dnspod/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
 ```
 ### 3.2 daemon方式 （建议单次运行调试成功后再定期运行,间隔时间可在配置中调整）
+**daemon方式运行时，如果修改配置文件，需要运行 ```docker restart ddns``` 让新配置生效**
 ```
 docker run -itd \
 --restart unless-stopped \
@@ -62,22 +66,34 @@ chariothy/dnspod-ddns \
 python main.py -d
 ```
 
-## 4. Python定期运行（建议单次运行调试成功后再定期运行）
+## 4. Python定期运行：(Python版本>=3.6)（建议单次运行调试成功后再定期运行）
 ### 4.1 crontab方式
 crontab -e
 
 新增一条任务：($USER替换成你的用户名，dnspod目录应该已经创建)
 
-*/5 * * * * cd /home/$USER/dnspod && python3 main.py
+*/5 * * * * cd /home/$USER/dnspod-ddns && python3 main.py
+
+### 4.2 Windows 计划任务方式
+**在Windows下运行时，请将 get_ipv4 和 get_ipv6 均配置为 api 方式**
+
+新增一个基本任务，**程序**为python，**参数**为 main.py，**起始于**为dnspod-ddns的目录  
 
 ### 4.2 daemon方式（建议单次运行调试成功后再定期运行,间隔时间可在配置中调整）
+**daemon方式运行时，如果修改配置文件，需要重启进程让新配置生效**
 ```
-cd /home/$USER/dnspod && python3 main.py -d
+# Linux下
+cd /home/$USER/dnspod-ddns && nohup python3 main.py -d 2>&1 &
+
+# Windows下
+cd dnspod-ddns && python main.py -d
 ```
 <br>
 
 # 注意：
-## 配置文件中默认dry为True，需要将其修改为False才会实际生效。
+1. 配置文件中默认dry为True，需要将其修改为False才会实际生效。
+1. docker方式运行时，每次更新请先运行 ```docker pull chariothy/dnspod-ddns```
+1. python方式运行时，每次更新请先运行 ```pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade -r ./requirements.txt```
 
 # TODO:
 1. 将自身做为服务器，代理其它结点的DDNS，这样只需要部署一处，就可以让所有设备DDNS，只要支持curl

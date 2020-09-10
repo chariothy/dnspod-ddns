@@ -44,7 +44,8 @@ def checkConfig():
             print('#'* 20 + ' ↓ config_sample.py有版本更新，请注意其中的配置项差异 ({} <-> {}) ↓ '.format(configVersion, CONFIG['version']) + '#' * 20)
             show_diff(sampleConfig, './config.py')
             shutil.move(sampleConfig, sampleConfig.replace('_sample', f'_sample.v{configVersion}'))
-            print('#'* 20 + ' ↑ config_sample.py有版本更新，请注意其中的配置项差异 ({} <-> {}) ↑ '.format(configVersion, CONFIG['version']) + '#' * 20)
+            print('#'* 20 + ' ↑ config_sample.py有版本更新，请注意其中的配置项差异 ({} <-> {}) ↑ \n'.format(configVersion, CONFIG['version']) + '#' * 20)
+            time.sleep(3)
         shutil.copyfile('./config.py', sampleConfig)
         os.chmod(sampleConfig, 0o777)
 
@@ -62,6 +63,9 @@ APP_NAME = 'dnspod'
 APP = AppTool(APP_NAME, os.getcwd(), 'config')
 CONFIG = APP.config
 LOGGER = APP.logger
+info = lambda msg, *args, **kwargs: LOGGER.info(msg, *args, **kwargs)
+debug = lambda msg, *args, **kwargs: LOGGER.debug(msg, *args, **kwargs)
+error = lambda msg, *args, **kwargs: LOGGER.error(msg, *args, **kwargs)
 IP_ADDR = {
     6: ':::',
     4: '...'
@@ -77,8 +81,9 @@ def p(*values, force=False):
     """非debug时打印结果
     """
     if CONFIG['debug'] or force:
-        print('\n【', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), '】 ', sep='', end='')
-        print(*values)
+        #print('\n【', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), '】 ', sep='', end='')
+        #print(*values)
+        LOGGER.info(*values)
 
 
 def requestDnsApi(method, data={}):
@@ -96,7 +101,7 @@ def requestDnsApi(method, data={}):
     result = res.json()
     #p(result)
     if result['status']['code'] != '1':
-        raise RuntimeError('Dnspod API调用失败')
+        raise RuntimeError(f'Dnspod API调用失败：{result}')
     return res.json()
 
 
@@ -104,13 +109,16 @@ def notifyByEmail(config, data):
     prefix = 'error_' if 'error' in data else ''
     subject = config[prefix + 'subject'].format(**data)
     body = config[prefix + 'body'].format(**data)
-    p('邮件===>', subject, '; ', body)
+    debug(f'邮件===> {subject} ; {body}')
+    #p('邮件===>', subject, '; ', body)
     if not CONFIG['dry']:
         res = APP.send_email(subject, body)
         if res:
-            p('邮件推送失败：', res, force=True)
+            error(f'邮件推送失败：{res}')
+            #p('邮件推送失败：', res, force=True)
         else:
-            p('邮件发送成功。')
+            debug('邮件发送成功。')
+            #p('邮件发送成功。')
 
 
 def notifyByDingTail(config, data):
@@ -118,7 +126,8 @@ def notifyByDingTail(config, data):
     """
     token = config['token']
     if not token:
-        p('ERROR: 没有钉钉token')
+        error('ERROR: 没有钉钉token')
+        #p('ERROR: 没有钉钉token')
         return
     prefix = 'error_' if 'error' in data else ''
     data = {
@@ -128,11 +137,13 @@ def notifyByDingTail(config, data):
         },
         "at": config['at']
     }
-    p('钉钉机器人===>', data)
+    debug(f'钉钉机器人===> {data}')
+    #p('钉钉机器人===>', data)
     if not CONFIG['dry']:
         res = requests.post(url="https://oapi.dingtalk.com/robot/send?access_token={}".format(token), \
             headers = {'Content-Type': 'application/json'}, data=json.dumps(data))
-        p('钉钉推送结果：', res.json())
+        #p('钉钉推送结果：', res.json())
+        debug(f'钉钉推送结果：{res.json()}')
 
 
 def notifyByServerChan(config, data):
@@ -140,10 +151,12 @@ def notifyByServerChan(config, data):
     url = 'https://sc.ftqq.com/{sckey}.send'.format(**config)
     title = config[prefix + 'title'].format(**data)
     message = config[prefix + 'message'].format(**data)
-    p('Server酱===>', title, '; ', message)
+    debug(f'Server酱===> {title} ; {message}')
+    #p('Server酱===>', title, '; ', message)
     if not CONFIG['dry']:
         res = requests.get(url, params={'text': title, 'desp': message})
-        p('Server酱推送结果：', res.json())
+        #p('Server酱推送结果：', res.json())
+        debug(f'Server酱推送结果：{res.json()}')
 
 
 def notify(data):
@@ -171,11 +184,11 @@ def parseIp(ipPair, version):
         ipMatch = re.findall(r'inet ([0-9\.]+)/(\d+)\s', ipLine)
     elif version == 6:
         ipMatch = re.findall(r'inet6 ([0-9a-f:]+)/(\d+)\s', ipLine)
-    p(ipMatch)
+    debug(ipMatch)
     ip, prefix = ipMatch[0]
     prefix = int(prefix)
     tlftMatch = re.findall(r'valid_lft (\d+sec|forever) preferred_lft (\d+sec|forever)', tlft)
-    p(tlftMatch)
+    debug(tlftMatch)
     valid, prefer = tlftMatch[0]
 
     if prefer == 'forever':
@@ -197,7 +210,7 @@ def saveIP(ip, version):
         version (int): 4,6
     """
     ipFilePath = IP_FILE.format(version)
-    p(f'新IP地址已经保存到{ipFilePath}')
+    debug(f'新IP地址已经保存到{ipFilePath}')
     with open(ipFilePath, mode='w') as fd:
         fd.write(ip)
 
@@ -233,14 +246,14 @@ def getIpByRegex(version):
             'grep -v " deprecated" | ' \
             'grep -v " 0sec" | ' \
             'grep -A1 "inet6 [^f:]"'.format(CONFIG['interface'])
-    p(command)
+    debug(command)
     ipStr = subprocess.check_output(command, shell=True).decode('utf-8')
-    p(ipStr)
+    debug(ipStr)
 
     ipParts = [x.strip() for x in ipStr.split('\n')]
-    p(ipParts)
+    debug(ipParts)
     ipPairList = list(zip(ipParts[::2], ipParts[1::2]))
-    p(f'获取到本地IPv{version}', ipPairList)
+    debug(f'获取到本地IPv{version} >>> {ipPairList}')
 
     if len(ipPairList) == 1:
         ips = parseIp(ipPairList[0], version)
@@ -251,7 +264,7 @@ def getIpByRegex(version):
             ips = parseIp(ipPair, version)
             ipList.append(ips)
         ipList.sort(key=lambda ip: ip[-1], reverse=True)
-        p(ipList)
+        debug(ipList)
         return ipList[0][0]
     else:
         raise RuntimeError(f'无法找到IPv{version}地址')
@@ -266,7 +279,7 @@ def getIpByApi(version):
     for apiUrl in apiUrls:
         iper = Ip.create(apiUrl, version)
         ip = iper.getIp()
-        p(ip)
+        debug(ip)
         if ip['ip']:
             return ip
     return {'ip': None, 'url': None}
@@ -354,7 +367,7 @@ def refreshRecord(subDomainName, newIP, version):
             if key in domain['records']:
                 record = domain['records'][key]
                 if record['value'] == newIP:
-                    p(f'{subDomainName}的IPv{version}地址与线上一致：{newIP}')
+                    debug(f'{subDomainName}的IPv{version}地址与线上一致：{newIP}')
                     continue
                 data = {
                     'domain_id': domainId,
@@ -374,10 +387,10 @@ def refreshRecord(subDomainName, newIP, version):
                     'record_line': '默认'
                 }
                 action = 'Record.Create'
-            p(data)
+            debug(data)
             if not CONFIG['dry']:
                 result = requestDnsApi(action, data)
-                p(result)
+                debug(result)
                 status = result['status']
                 if status['code'] != '1':
                     raise RuntimeError('{}-{}'.format(status['code'], status['message']))
@@ -388,30 +401,28 @@ def run(version):
     dnsType = 'AAAA' if version == 6 else 'A'
     domains = CONFIG[f'ipv{version}']
     if not domains:
-        p(f'未配置IPv{version}，不需要更新。')
+        debug(f'未配置IPv{version}，不需要更新。')
         return
     domainStr = ','.join(domains)
     try:
-        p('*'*40 + f'IPv{version}' + '*'*40)
+        debug('*'*40 + f'IPv{version}' + '*'*40)
         global IP_ADDR
         newIP = getIp(version)
-        p(f'解析IPv{version}结果为：{newIP}', force=True)
+        debug(f'解析IPv{version}结果为：{newIP}')
         oldIp = getOldIP(version)
         if newIP != oldIp or CONFIG['force']:
             IP_ADDR[version] = newIP
-            p('IPv{}已发生改变，上次地址为{}'.format(version, oldIp), force=True)
+            info('IPv{}已发生改变，上次地址为{}'.format(version, oldIp))
             for subDomain in domains:
                 refreshRecord(subDomain, newIP, version)
-            p(f'域名{domains}的{dnsType}纪录已经更新为{newIP}', force=True)
+            info(f'域名{domains}的{dnsType}纪录已经更新为{newIP}')
             notify({'version': version, 'dnsType': dnsType, 'ip': newIP, 'domains': domainStr})
             if not CONFIG['dry']:
                 saveIP(newIP, version)
         else:
-            p(f'IPv{version}未发生改变，程序结束')
+            debug(f'IPv{version}未发生改变，程序结束')
     except Exception as ex:
-        p('!!!运行失败，原因：', ex, force=True)
-        if CONFIG['debug']:
-            traceback.print_exc()
+        error(f'!!!运行失败，原因：{ex}')
         notify({'version': version, 'dnsType': dnsType, 'domains': domainStr, 'error': ex})
     
     if CONFIG['dry']:
