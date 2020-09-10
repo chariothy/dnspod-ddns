@@ -44,7 +44,8 @@ def checkConfig():
             print('#'* 20 + ' ↓ config_sample.py有版本更新，请注意其中的配置项差异 ({} <-> {}) ↓ '.format(configVersion, CONFIG['version']) + '#' * 20)
             show_diff(sampleConfig, './config.py')
             shutil.move(sampleConfig, sampleConfig.replace('_sample', f'_sample.v{configVersion}'))
-            print('#'* 20 + ' ↑ config_sample.py有版本更新，请注意其中的配置项差异 ({} <-> {}) ↑ \n'.format(configVersion, CONFIG['version']) + '#' * 20)
+            print('#'* 20 + ' ↑ config_sample.py有版本更新，请注意其中的配置项差异 ({} <-> {}) ↑ '.format(configVersion, CONFIG['version']) + '#' * 20)
+            print()
             time.sleep(3)
         shutil.copyfile('./config.py', sampleConfig)
         os.chmod(sampleConfig, 0o777)
@@ -75,6 +76,7 @@ UID = CONFIG['dnspod']['id']
 UTOKEN = CONFIG['dnspod']['token']
 URL = 'https://dnsapi.cn/'
 DOMAIN_RECORD = {}
+DAEMON = '-d' in sys.argv
 
 
 def p(*values, force=False):
@@ -433,7 +435,7 @@ def start():
     while True:
         run(6)
         run(4)
-        if '-d' in sys.argv:
+        if DAEMON:
             time.sleep(CONFIG['interval'])
         else:
             break

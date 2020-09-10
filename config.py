@@ -2,11 +2,15 @@ CONFIG = {
     'version': '1.4',                   # 配置文件版本
     "debug": True,                      # 是否输出更多信息 （deprecated since 1.4）
     'log': {
-        'level': 'DEBUG',   # 与log库的level一致，包括DEBUG, INFO, ERROR
+        'level': 'DEBUG',   # 与logging库的level一致，包括DEBUG, INFO, ERROR
                             #   DEBUG   - Enable stdout, file, mail （如果在dest中启用）
                             #   INFO    - Enable file, mail         （如果在dest中启用）
                             #   ERROR   - Enable mail               （如果在dest中启用）
         'dest': ['stdout', 'file', 'mail'],  # 分别设置日志对象，优先级高于level设置
+                                             #  建议：
+                                             #      调试时使用stdout
+                                             #      在物理机后台运行时使用file和mail
+                                             #      在docker中运行时使用stdout和mail
         'receiver': (('Hongyu TIAN', '6314849@qq.com'),) # 日志邮件接收者，如果为空，则使用mail.to设置
     },
     'dry': False,                       # 是否dry run，只检测不更新，防止测试时频繁更新和推送，也不会保存旧IP
