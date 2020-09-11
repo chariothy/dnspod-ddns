@@ -1,4 +1,3 @@
 requests
 flask
-click
 chariothy_common

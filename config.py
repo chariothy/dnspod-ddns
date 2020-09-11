@@ -1,6 +1,6 @@
 CONFIG = {
-    'version': '1.4',                   # 配置文件版本
-    "debug": True,                      # 是否输出更多信息 （deprecated since 1.4）
+    'version': '1.5',                   # 配置文件版本
+    "debug": True,                      # DDNS server是否运行在debug模式
     'log': {
         'level': 'DEBUG',   # 与logging库的level一致，包括DEBUG, INFO, ERROR
                             #   DEBUG   - Enable stdout, file, mail （如果在dest中启用）
@@ -92,4 +92,5 @@ CONFIG = {
                                                             #       dnsType(A,AAAA)
                                                             #       error(错误信息)                    
     },
+    'server_token': 'token_to_request_ddns_server_api'      # 请求DDSN server api的token
 }
