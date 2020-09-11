@@ -80,6 +80,7 @@ def refreshRecord(subDomainName, newIP, version):
             "created_at":now()
         },
     }
+    # TODO: 统一对dry判断
     if CONFIG['dry']:
         example["NOTICE"] = '目前在dry模式下运行'
 

@@ -16,6 +16,11 @@
 
 <br>
 
+## 3. 对于IPv6支持DDNS 服务器方式：
+### 方便对多个设备DDNS，避免多处部署，多处更新
+
+<br>
+
 # 说明：
 ### 首次运行时，程序会检测当前目录下是否有**config_local.py**这个文件，这个文件中的值会覆盖默认的**config.py**中的值。
 ### 如果没有此文件，则会创建一个**config_sample.py**示例文件，只要在这个新建的文件中修改相应的值并另存为confg_local.py就可以了。
@@ -24,37 +29,27 @@
 
 <br>
 
-## 1. Docker用法：
+## 1. 首次运行
+### Docker 方式
 ```
 cd ~ && mkdir dnspod && cd ~/dnspod
 
-docker pull chariothy/dnspod-ddns （如果需要更新）
+docker pull chariothy/dnspod-ddns （每次更新时需要运行）
 
 docker run -it --rm --name ddns -v $PWD/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
 ```
-## 2. Python用法：(Python版本>=3.6)
+### Python方式：(Python版本>=3.8)
 **在Windows下运行时，请将 get_ipv4 和 get_ipv6 均配置为 api 方式**
 ```
-cd ~
+git clone git@github.com:chariothy/dnspod-ddns.git && cd dnspod-ddns
 
-git clone git@github.com:chariothy/dnspod-ddns.git
-
-cd dnspod-ddns
-
-pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade -r ./requirements.txt
+pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade -r ./requirements.txt （每次更新时需要运行）
 
 python3 main.py
 ```
-## 3. Docker定期运行（建议单次运行调试成功后再定期运行）：
-### 3.1 crontab方式
-crontab -e
 
-新增一条任务：($USER替换成你的用户名，dnspod目录应该已经创建)
-```
-
-*/5 * * * * docker run -it --rm -v /home/$USER/dnspod/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
-```
-### 3.2 daemon方式 （建议单次运行调试成功后再定期运行,间隔时间可在配置中调整）
+## 2. 后台运行（首次运行调试成功后，间隔时间可在配置中调整interval）
+### Docker方式 
 **daemon方式运行时，如果修改配置文件，需要运行 ```docker restart ddns``` 让新配置生效**
 ```
 docker run -itd \
@@ -66,41 +61,53 @@ chariothy/dnspod-ddns \
 python main.py -d
 ```
 
-## 4. Python定期运行：(Python版本>=3.6)（建议单次运行调试成功后再定期运行）
-### 4.1 crontab方式
-crontab -e
-
-新增一条任务：($USER替换成你的用户名，dnspod目录应该已经创建)
-
-*/5 * * * * cd /home/$USER/dnspod-ddns && python3 main.py
-
-### 4.2 Windows 计划任务方式
-**在Windows下运行时，请将 get_ipv4 和 get_ipv6 均配置为 api 方式**
-
-新增一个基本任务，**程序**为python，**参数**为 main.py，**起始于**为dnspod-ddns的目录  
-
-### 4.2 daemon方式（建议单次运行调试成功后再定期运行,间隔时间可在配置中调整）
+### Python方式
 **daemon方式运行时，如果修改配置文件，需要重启进程让新配置生效**
 ```
-# Linux下
-cd /home/$USER/dnspod-ddns && nohup python3 main.py -d 2>&1 &
-
-# Windows下
-cd dnspod-ddns && python main.py -d
+cd dnspod-ddns && python3 main.py -d
 ```
 
-## DDNS 服务器
-curl -H "Content-Type:application/json" -d '{"domain":["node.domain.com"], "token":"token_to_request_ddns_server_api"}' ddns.domain.com:7788/ip
-curl -X POST "ddns.domain.com:7788/ip\?domain=node.domain.com\&token=token_to_request_ddns_server_api"
+## 3. DDNS 服务器
+### 此模式基本针对IPv6，因为IPv4一般为NAT方式，公网IP只需要在一台机器运行即可。
+### 但IPv6会给每台设备分配一个公网地址，因此要给每台设备上运行一个DDNS 客户端。
+### 而如果使用DDNS 服务器，则只需要在每台设备上curl调用DDNS 服务器的API即可。
 
 <br>
 
-# 注意：
+#### 3.1 在一台设备上用后台方式建立起一个DDNS，假设对应域名为 **ddns.domain.com**
+#### 3.2 在配置文件中设置 server_token，防止被盗用（```openssl rand -hex 10```）
+#### 3.3 docker方式（建议使用host网络因为docker对IPv6支持不够好）
+```
+docker run -itd \
+--restart unless-stopped \
+--name ddns-server \
+-v $PWD/config:/usr/src/app/config \
+--network=host \
+chariothy/dnspod-ddns \
+python server.py
+```
+#### 3.4 python方式
+```cd dnspod-ddns && python3 server.py```
+
+#### 3.5 每个设备客户端
+````
+# 如果此设备只对应一个域名（有些终端需要在 ? 和 & 前加上 \ 来转义）
+curl -X POST "ddns.domain.com:7788/ip?domain=node.domain.com&token=token_to_request_ddns_server_api"
+
+# 如果此设备只对应多个域名
+curl -H "Content-Type:application/json" -d '{"domain":["node1.domain.com", "node2.domain.com"], "token":"token_to_request_ddns_server_api"}' "ddns.domain.com:7788/ip"
+````
+<br>
+
+## 注意：
 1. 配置文件中默认dry为True，需要将其修改为False才会实际生效。
 1. docker方式运行时，每次更新请先运行 ```docker pull chariothy/dnspod-ddns```
 1. python方式运行时，每次更新请先运行 ```pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade -r ./requirements.txt```
 
-# TODO:
-1. 将自身做为服务器，代理其它结点的DDNS，这样只需要部署一处，就可以让所有设备DDNS，只要支持curl
+<br>
+
+## TODO:
 1. 加入域名权重配置
 1. 加入docker-compose用法说明
+1. port自定义
+1. interval分别设置

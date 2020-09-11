@@ -46,7 +46,7 @@ def request_get(key):
 def set_ip():
     domains = request_get('domain')
     token = request_get('token')
-    print(domains, token)
+    #print(domains, token)
 
     if token != TOKEN:
         message = {
