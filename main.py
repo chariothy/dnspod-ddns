@@ -23,17 +23,17 @@ def run(version):
         for subDomain in domains:
             oldIp = getOldIP(version, subDomain)
             if newIP != oldIp or CONFIG['force']:
-                APP.I('IPv{}已发生改变，上次地址为{}'.format(version, oldIp))
+                APP.I(f'域名{subDomain}的IPv{version}已发生改变，上次地址为{oldIp}')
                 
                 result = refreshRecord(subDomain, newIP, version)
                 status = result['status']
                 if status['code'] != '1':
                     raise RuntimeError('{}-{}'.format(status['code'], status['message']))
 
-                APP.I(f'域名{domains}的{dnsType}纪录已经更新为{newIP}')
+                APP.I(f'域名{subDomain}的{dnsType}纪录已经更新为{newIP}')
                 changedDomains.append(subDomain)
             else:
-                APP.D(f'域名{domains}的{dnsType}纪录未发生改变')
+                APP.D(f'域名{subDomain}的{dnsType}纪录未发生改变')
         if not CONFIG['dry']:
             saveIP(version, newIP, domains)
         if changedDomains:

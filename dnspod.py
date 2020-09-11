@@ -74,13 +74,15 @@ def refreshRecord(subDomainName, newIP, version):
     getDomains()
     recordType = 'AAAA' if version == 6 else 'A'
     example = {
-        "NOTICE": '目前在dry模式下运行',
         "status": {
             "code":"1",
             "message":"Action completed successful",
             "created_at":now()
         },
     }
+    if CONFIG['dry']:
+        example["NOTICE"] = '目前在dry模式下运行'
+
     for domainId in DOMAIN_RECORD.keys():
         domain = DOMAIN_RECORD[domainId]
         if domain['name'] in subDomainName:
@@ -126,7 +128,7 @@ def refreshRecord(subDomainName, newIP, version):
                 APP.D(result)
                 return result
             APP.D(example)
-    return example
-                    
     # Clear cache
     DOMAIN_RECORD.clear()
+    return example
+                    

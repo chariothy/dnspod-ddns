@@ -88,6 +88,11 @@ cd /home/$USER/dnspod-ddns && nohup python3 main.py -d 2>&1 &
 # Windows下
 cd dnspod-ddns && python main.py -d
 ```
+
+## DDNS 服务器
+curl -H "Content-Type:application/json" -d '{"domain":["node.domain.com"], "token":"token_to_request_ddns_server_api"}' ddns.domain.com:7788/ip
+curl -X POST "ddns.domain.com:7788/ip\?domain=node.domain.com\&token=token_to_request_ddns_server_api"
+
 <br>
 
 # 注意：

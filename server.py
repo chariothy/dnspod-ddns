@@ -70,6 +70,7 @@ def set_ip():
     ipv4 = ipv6to4(ipv6)
     newIP = ipv4 if ipv4 else ipv6
     version = 4 if ipv4 else 6
+    dnsType = 'AAAA' if version == 6 else 'A'
 
     if type(domains) == str:
         domains = [domains]
@@ -79,11 +80,12 @@ def set_ip():
     for domain in domains:
         oldIp = getOldIP(version, domain)
         if newIP != oldIp or CONFIG['force']:
-            APP.I('IPv{}已发生改变，上次地址为{}'.format(version, oldIp))
+            APP.I(f'域名{domain}的IPv{version}已发生改变，上次地址为{oldIp}')
             result = refreshRecord(domain, newIP, version)
             results.append(result)
+            changedDomains.append(domain)
         else:
-            APP.D(f'域名{domains}的{dnsType}纪录')
+            APP.D(f'域名{domain}的{dnsType}纪录未发生改变')
             results.append({
                 "status": {
                     "code":"1",
