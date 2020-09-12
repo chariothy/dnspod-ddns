@@ -32,9 +32,9 @@
 ## 1. 首次运行
 ### Docker 方式
 ```
-cd ~ && mkdir dnspod && cd ~/dnspod
+docker pull chariothy/dnspod-ddns 
 
-docker pull chariothy/dnspod-ddns （每次更新时需要运行）
+cd ~ && mkdir dnspod && cd ~/dnspod
 
 docker run -it --rm --name ddns -v $PWD/config:/usr/src/app/config --network=host chariothy/dnspod-ddns
 ```
@@ -52,6 +52,10 @@ python3 main.py
 ### Docker方式 
 **daemon方式运行时，如果修改配置文件，需要运行 ```docker restart ddns``` 让新配置生效**
 ```
+（每次更新时需要运行 docker pull chariothy/dnspod-ddns && docker stop ddns && docker rm ddns ）
+
+cd ~/dnspod
+
 docker run -itd \
 --restart unless-stopped \
 --name ddns \
@@ -78,6 +82,10 @@ cd dnspod-ddns && python3 main.py -d
 #### 3.2 在配置文件中设置 server_token，防止被盗用（```openssl rand -hex 10```）
 #### 3.3 docker方式（建议使用host网络因为docker对IPv6支持不够好）
 ```
+（每次更新时需要运行 docker pull chariothy/dnspod-ddns && docker stop ddns && docker rm ddns ）
+
+cd ~/dnspod
+
 docker run -itd \
 --restart unless-stopped \
 --name ddns-server \
