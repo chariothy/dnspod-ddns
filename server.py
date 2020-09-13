@@ -121,4 +121,4 @@ def get_ip():
 
 if __name__ == "__main__":
     # 将host设置为0.0.0.0，则外网用户也可以访问到这个服务
-    app.run(host="::", port=7788, debug=CONFIG['debug'])
+    app.run(host="::", port=CONFIG['server_port'], debug=CONFIG['debug'])

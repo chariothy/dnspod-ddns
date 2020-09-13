@@ -93,4 +93,5 @@ CONFIG = {
                                                             #       error(错误信息)                    
     },
     'server_token': 'token_to_request_ddns_server_api'      # 请求DDSN server api的token
+    'server_port': 7788                                     # DDNS server 端口
 }

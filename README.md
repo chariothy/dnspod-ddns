@@ -117,5 +117,4 @@ curl -H "Content-Type:application/json" -d '{"domain":["node1.domain.com", "node
 ## TODO:
 1. 加入域名权重配置
 1. 加入docker-compose用法说明
-1. port自定义
 1. interval分别设置
