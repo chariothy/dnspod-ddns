@@ -97,7 +97,7 @@ python server.py
 #### 3.4 python方式
 ```cd dnspod-ddns && python3 server.py```
 
-#### 3.5 每个设备客户端
+#### 3.5 每个设备客户端（端口默认为7788，可以在配置文件中自定义）
 ````
 # 如果此设备只对应一个域名（有些终端需要在 ? 和 & 前加上 \ 来转义）
 curl -X POST "ddns.domain.com:7788/ip?domain=node.domain.com&token=token_to_request_ddns_server_api"
