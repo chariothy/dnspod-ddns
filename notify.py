@@ -7,15 +7,15 @@ def notifyByEmail(config, data):
     prefix = 'error_' if 'error' in data else ''
     subject = config[prefix + 'subject'].format(**data)
     body = config[prefix + 'body'].format(**data)
-    APP.D(f'邮件 数据===> {subject} ; {body}')
+    APP.debug(f'邮件 数据===> {subject} ; {body}')
     #p('邮件===>', subject, '; ', body)
     if not CONFIG['dry']:
         res = APP.send_email(subject, body)
         if res:
-            APP.E(f'邮件推送失败：{res}')
+            APP.error(f'邮件推送失败：{res}')
             #p('邮件推送失败：', res, force=True)
         else:
-            APP.D('邮件发送成功。')
+            APP.debug('邮件发送成功。')
             #p('邮件发送成功。')
 
 
@@ -24,8 +24,8 @@ def notifyByDingTail(config, data):
     """
     token = config['token']
     if not token:
-        APP.E('APP.E: 没有钉钉token')
-        #p('APP.E: 没有钉钉token')
+        APP.error('没有钉钉token')
+        #p('APP.error: 没有钉钉token')
         return
     prefix = 'error_' if 'error' in data else ''
     data = {
@@ -35,13 +35,13 @@ def notifyByDingTail(config, data):
         },
         "at": config['at']
     }
-    APP.D(f'钉钉机器人 数据===> {data}')
+    APP.debug(f'钉钉机器人 数据===> {data}')
     #p('钉钉机器人===>', data)
     if not CONFIG['dry']:
         res = requests.post(url="https://oapi.dingtalk.com/robot/send?access_token={}".format(token), \
             headers = {'Content-Type': 'application/json'}, data=json.dumps(data))
         #p('钉钉推送结果：', res.json())
-        APP.D(f'钉钉推送结果：{res.json()}')
+        APP.debug(f'钉钉推送结果：{res.json()}')
 
 
 def notifyByServerChan(config, data):
@@ -49,12 +49,12 @@ def notifyByServerChan(config, data):
     url = 'https://sc.ftqq.com/{sckey}.send'.format(**config)
     title = config[prefix + 'title'].format(**data)
     message = config[prefix + 'message'].format(**data)
-    APP.D(f'Server酱 数据===> {title} ; {message}')
+    APP.debug(f'Server酱 数据===> {title} ; {message}')
     #p('Server酱===>', title, '; ', message)
     if not CONFIG['dry']:
         res = requests.get(url, params={'text': title, 'desp': message})
         #p('Server酱推送结果：', res.json())
-        APP.D(f'Server酱推送结果：{res.json()}')
+        APP.debug(f'Server酱推送结果：{res.json()}')
 
 
 def notify(data):

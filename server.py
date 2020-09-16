@@ -80,12 +80,12 @@ def set_ip():
     for domain in domains:
         oldIp = getOldIP(version, domain)
         if newIP != oldIp or CONFIG['force']:
-            APP.I(f'域名{domain}的IPv{version}已发生改变，上次地址为{oldIp}')
+            APP.info(f'域名{domain}的IPv{version}已发生改变，上次地址为{oldIp}')
             result = refreshRecord(domain, newIP, version)
             results.append(result)
             changedDomains.append(domain)
         else:
-            APP.D(f'域名{domain}的{dnsType}纪录未发生改变')
+            APP.debug(f'域名{domain}的{dnsType}纪录未发生改变')
             results.append({
                 "status": {
                     "code":"1",

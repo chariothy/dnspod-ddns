@@ -117,11 +117,11 @@ def parseIp(ipPair, version):
         ipMatch = re.findall(r'inet ([0-9\.]+)/(\d+)\s', ipLine)
     elif version == 6:
         ipMatch = re.findall(r'inet6 ([0-9a-f:]+)/(\d+)\s', ipLine)
-    APP.D(ipMatch)
+    APP.debug(ipMatch)
     ip, prefix = ipMatch[0]
     prefix = int(prefix)
     tlftMatch = re.findall(r'valid_lft (\d+sec|forever) preferred_lft (\d+sec|forever)', tlft)
-    APP.D(tlftMatch)
+    APP.debug(tlftMatch)
     valid, prefer = tlftMatch[0]
 
     if prefer == 'forever':
@@ -146,7 +146,7 @@ def saveIP(version, ip, domains):
     for domain in domains:
         DOMAIN_IP[domain] = ip
     dump_json(ipFilePath, DOMAIN_IP)
-    APP.D(f'新IP地址已经保存到{ipFilePath}')
+    APP.debug(f'新IP地址已经保存到{ipFilePath}')
 
 
 def getOldIP(version, domain):
@@ -186,14 +186,14 @@ def getIpByRegex(version):
             'grep -v " deprecated" | ' \
             'grep -v " 0sec" | ' \
             'grep -A1 "inet6 [^f:]"'.format(CONFIG['interface'])
-    APP.D(command)
+    APP.debug(command)
     ipStr = subprocess.check_output(command, shell=True).decode('utf-8')
-    APP.D(ipStr)
+    APP.debug(ipStr)
 
     ipParts = [x.strip() for x in ipStr.split('\n')]
-    APP.D(ipParts)
+    APP.debug(ipParts)
     ipPairList = list(zip(ipParts[::2], ipParts[1::2]))
-    APP.D(f'获取到本地IPv{version} >>> {ipPairList}')
+    APP.debug(f'获取到本地IPv{version} >>> {ipPairList}')
 
     if len(ipPairList) == 1:
         ips = parseIp(ipPairList[0], version)
@@ -204,7 +204,7 @@ def getIpByRegex(version):
             ips = parseIp(ipPair, version)
             ipList.append(ips)
         ipList.sort(key=lambda ip: ip[-1], reverse=True)
-        APP.D(ipList)
+        APP.debug(ipList)
         return ipList[0][0]
     else:
         raise RuntimeError(f'无法找到IPv{version}地址')
@@ -219,7 +219,7 @@ def getIpByApi(version):
     for apiUrl in apiUrls:
         iper = Ip.create(apiUrl, version)
         ip = iper.getIp()
-        APP.D(ip)
+        APP.debug(ip)
         if ip['ip']:
             return ip
     return {'ip': None, 'url': None}
@@ -242,7 +242,7 @@ def getIp(version):
     if ipRegex and ipApi:
         ip = ipApi
         if ipRegex != ipApi:
-            APP.W(f'IPv{version}不一致', f'从网卡获取的IP为{ipRegex}，从{ipUrl}获取的IP为{ipApi}')        
+            APP.warn(f'IPv{version}不一致', f'从网卡获取的IP为{ipRegex}，从{ipUrl}获取的IP为{ipApi}')        
     elif not ipRegex and not ipApi:
         raise RuntimeError(f'未获取到IPv{version}地址')
     elif ipApi:

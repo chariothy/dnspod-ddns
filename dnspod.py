@@ -92,7 +92,7 @@ def refreshRecord(subDomainName, newIP, version):
             if key in domain['records']:
                 record = domain['records'][key]
                 if record['value'] == newIP:
-                    APP.D(f'{subDomainName}的IPv{version}地址与线上一致：{newIP}')
+                    APP.debug(f'{subDomainName}的IPv{version}地址与线上一致：{newIP}')
                     continue
                 data = {
                     'domain_id': domainId,
@@ -123,12 +123,12 @@ def refreshRecord(subDomainName, newIP, version):
                     "name":domain['name'],
                     "status":"enable"
                 }
-            APP.D(data)
+            APP.debug(data)
             if not CONFIG['dry']:
                 result = requestDnsApi(action, data)
-                APP.D(result)
+                APP.debug(result)
                 return result
-            APP.D(example)
+            APP.debug(example)
     # Clear cache
     DOMAIN_RECORD.clear()
     return example

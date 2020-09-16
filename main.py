@@ -13,33 +13,33 @@ def run(version):
     dnsType = 'AAAA' if version == 6 else 'A'
     domains = CONFIG[f'ipv{version}']
     if not domains:
-        APP.D(f'未配置IPv{version}，不需要更新。')
+        APP.debug(f'未配置IPv{version}，不需要更新。')
         return
     try:
-        APP.D('*'*40 + f'IPv{version}' + '*'*40)
+        APP.debug('*'*40 + f'IPv{version}' + '*'*40)
         newIP = getIp(version)
-        APP.D(f'解析IPv{version}结果为：{newIP}')
+        APP.debug(f'解析IPv{version}结果为：{newIP}')
         changedDomains = []
         for subDomain in domains:
             oldIp = getOldIP(version, subDomain)
             if newIP != oldIp or CONFIG['force']:
-                APP.I(f'域名{subDomain}的IPv{version}已发生改变，上次地址为{oldIp}')
+                APP.info(f'域名{subDomain}的IPv{version}已发生改变，上次地址为{oldIp}')
                 
                 result = refreshRecord(subDomain, newIP, version)
                 status = result['status']
                 if status['code'] != '1':
                     raise RuntimeError('{}-{}'.format(status['code'], status['message']))
 
-                APP.I(f'域名{subDomain}的{dnsType}纪录已经更新为{newIP}')
+                APP.info(f'域名{subDomain}的{dnsType}纪录已经更新为{newIP}')
                 changedDomains.append(subDomain)
             else:
-                APP.D(f'域名{subDomain}的{dnsType}纪录未发生改变')
+                APP.debug(f'域名{subDomain}的{dnsType}纪录未发生改变')
         if not CONFIG['dry']:
             saveIP(version, newIP, domains)
         if changedDomains:
             notify({'version': version, 'dnsType': dnsType, 'ip': newIP, 'domains': ','.join(changedDomains)})
     except Exception as ex:
-        APP.E(f'!!!运行失败，原因：{ex}')
+        APP.error(f'!!!运行失败，原因：{ex}')
         notify({'version': version, 'dnsType': dnsType, 'domains': ','.join(domains), 'error': ex})
     
     if CONFIG['dry']:
