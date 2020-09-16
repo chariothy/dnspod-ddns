@@ -129,9 +129,9 @@ def parseIp(ipPair, version):
     else:
         prefer = int(prefer[:-3])       # Remove 'sec'
         valid = int(valid[:-3])         # Remove 'sec'
-        score = (prefer + valid) * prefix
+        score = prefer + valid
         if 'mngtmpaddr' in ipLine:
-            score = prefer * 0.8
+            score = prefer * 2
     return (ip, score)
 
 
