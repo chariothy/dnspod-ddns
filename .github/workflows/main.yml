@@ -36,15 +36,20 @@ jobs:
     - name: Login to docker hub
       run: echo "${{ secrets.DOCKER_PWD }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
       
+    - name: Set docker repository name
+      run: |
+        export REP_NAME=dnspod-ddns
+        echo "::set-env name=REP_NAME::$REP_NAME"
+
     # Runs a set of commands using the runners shell
     - name: Build the image
       run: |
         docker buildx build --push \
-            --tag ${{ secrets.DOCKER_USER }}/dnspod-ddns:latest \
-            --tag ${{ secrets.DOCKER_USER }}/dnspod-ddns:${{ steps.vars.outputs.tag }} \
+            --tag ${{ secrets.DOCKER_USER }}/$REP_NAME:latest \
+            --tag ${{ secrets.DOCKER_USER }}/$REP_NAME:${{ steps.vars.outputs.tag }} \
             --platform linux/386,linux/amd64,linux/arm64,linux/arm/v7 .
 
     - name: Inspect image
       if: always() && github.event_name != 'pull_request'
       run: |
-        docker buildx imagetools inspect ${{ secrets.DOCKER_USER }}/dnspod-ddns:latest
+        docker buildx imagetools inspect ${{ secrets.DOCKER_USER }}/$REP_NAME:latest
